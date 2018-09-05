@@ -1,0 +1,5 @@
+*.json
+
+rmm.egg-info/
+build/
+dist/
