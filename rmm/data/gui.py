@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
-# move.py
+# gui.py
 # author: Antoine Passemiers
 
-from rmm.movement import MouseMovement
+from rmm.mouse import RealisticMouse
+from rmm.move import *
+from rmm.utils import SCREEN_RESOLUTION, MV_FILE_PATH
 
-import numpy as np
-import pyautogui
 import os
 import copy
-import random
-import argparse
-import time
-import threading
 import json
+import argparse
+import numpy as np
 try:
     import tkinter as tk
 except ImportError:
@@ -39,7 +37,6 @@ class GUI:
         self.button_red.config(height=button_size, width=button_size*2)
 
         self.place_buttons()
-
         self.master.mainloop()
     
     def random_coords(self, pad=100):
@@ -60,7 +57,6 @@ class GUI:
     
     def on_click_blue(self):
         if self.red_pressed:
-            print(len(self.movements))
             self.movements[-1].stop_recording()
             self.blue_pressed = True
             self.place_buttons()
@@ -70,19 +66,28 @@ class GUI:
         self.red_pressed = True
         self.movements.append(MouseMovement())
         self.movements[-1].start_recording()
+
+
+if __name__ == '__main__':
     
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", choices=['mouse', 'trackpad'])
+    args = parser.parse_args()
 
-class Simulator:
+    if os.path.isfile(MV_FILE_PATH):
+        json_file = open(MV_FILE_PATH, "r")
+        data = json.load(json_file)
+        json_file.close()
+    else:
+        print('[WARNING] No data file found. New file created.')
+        data = {'mouse': [], 'trackpad': []}
 
-    def __init__(self, mouse):
-        self.mouse = mouse
-    
-    def simulate(self):
-        while True:
-            x, y = self.random_coords()
-            self.mouse.move_to(x, y)
+    gui = GUI()
+    data[args.mode] += [movement.__dict__() for movement in gui.movements]
 
-    def random_coords(self):
-        x = np.random.randint(0, MouseMovement.SCREEN_RESOLUTION[0])
-        y = np.random.randint(0, MouseMovement.SCREEN_RESOLUTION[1])
-        return x, y
+    src_mv_path = os.path.join(os.path.split(__file__)[0], 'movements.json')
+    print(src_mv_path)
+
+    json_file = open(src_mv_path, "w")
+    json.dump(data, json_file)
+    json_file.close()

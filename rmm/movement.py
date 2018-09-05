@@ -11,8 +11,6 @@ import threading
 
 class MouseMovement:
 
-    SCREEN_RESOLUTION = get_screen_size()
-
     def __init__(self):
         self.coords = list()
         self.timestamps = list()
@@ -65,7 +63,7 @@ class MouseMovement:
     
     def __dict__(self):
         return {
-            'screen_resolution': MouseMovement.SCREEN_RESOLUTION,
+            'screen_resolution': SCREEN_RESOLUTION,
             'coords': [[int(x), int(y)] for x, y in self.coords],
             'timestamps': [int(d) for d in list(np.asarray(self.timestamps) - self.timestamps[0])]}
     

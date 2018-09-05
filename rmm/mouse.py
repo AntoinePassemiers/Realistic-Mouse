@@ -15,9 +15,13 @@ class MouseMode:
 
 class RealisticMouse:
 
-    def __init__(self, movements, mode=MouseMode.TRACKPAD):
-        self.movements = movements
+    def __init__(self, mode=MouseMode.TRACKPAD):
+        movements = get_mv_data()
         self.mode = mode
+        for mode in [MouseMode.TRACKPAD, MouseMode.MOUSE]:
+            for i in range(len(movements[mode])):
+                movements[mode][i] = MouseMovement.from_dict(movements[mode][i])
+        self.movements = movements
         self.src = {
             MouseMode.TRACKPAD: np.asarray(
                 [m.coords[0] for m in self.movements[MouseMode.TRACKPAD]]),
@@ -28,6 +32,10 @@ class RealisticMouse:
                 [m.coords[-1] for m in self.movements[MouseMode.TRACKPAD]]),
             MouseMode.MOUSE: np.asarray(
                 [m.coords[-1] for m in self.movements[MouseMode.MOUSE]])}
+
+        if len(self.src[self.mode]) == 0:
+            raise NoDataFoundException(
+                'No data found for requested mode: "%s"' % self.mode)
     
     def closest(self, x0, y0, x1, y1):
         positions = np.concatenate(
@@ -59,7 +67,11 @@ class RealisticMouse:
         assert((x0, y0) == (_x0, _y0))
         print('Mouse movement: (%i, %i) -> (%i, %i) -> (%i, %i)' % \
             (x0, y0, _x1, _y1, x1, y1))
-        self.unrealistic_move_to(_x0, _y0)
         movement.replay()
         self.unrealistic_move_to(x1, y1)
-
+    
+    def left_click(self):
+        pass
+    
+    def right_click(self):
+        pass
