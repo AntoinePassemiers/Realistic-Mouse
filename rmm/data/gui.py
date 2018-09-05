@@ -4,10 +4,11 @@
 
 from rmm.mouse import RealisticMouse
 from rmm.move import *
-from rmm.utils import SCREEN_RESOLUTION, MV_FILE_PATH
+from rmm.utils import *
 
 import os
 import copy
+import zipfile
 import json
 import argparse
 import numpy as np
@@ -74,20 +75,17 @@ if __name__ == '__main__':
     parser.add_argument("mode", choices=['mouse', 'trackpad'])
     args = parser.parse_args()
 
-    if os.path.isfile(MV_FILE_PATH):
-        json_file = open(MV_FILE_PATH, "r")
-        data = json.load(json_file)
-        json_file.close()
-    else:
-        print('[WARNING] No data file found. New file created.')
-        data = {'mouse': [], 'trackpad': []}
+    data = get_mv_data()
 
     gui = GUI()
     data[args.mode] += [movement.__dict__() for movement in gui.movements]
 
-    src_mv_path = os.path.join(os.path.split(__file__)[0], 'movements.json')
-    print(src_mv_path)
-
-    json_file = open(src_mv_path, "w")
+    src_json_path = os.path.join(os.path.split(__file__)[0], 'movements.json')
+    json_file = open(src_json_path, "w")
     json.dump(data, json_file)
     json_file.close()
+
+    src_mv_path = os.path.join(os.path.split(__file__)[0], 'movements.zip')
+    with zipfile.ZipFile(src_mv_path, 'w', zipfile.ZIP_DEFLATED) as z:
+        z.write(src_json_path)
+    os.remove(src_json_path)

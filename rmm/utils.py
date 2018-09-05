@@ -6,11 +6,12 @@ import pyautogui
 
 import os
 import json
+import zipfile
 
 
 file_dir, _ = os.path.split(__file__)
 DATA_PATH = os.path.join(file_dir, 'data')
-MV_FILE_PATH = os.path.join(DATA_PATH, 'movements.json')
+MV_FILE_PATH = os.path.join(DATA_PATH, 'movements.zip')
 
 pyautogui.FAILSAFE = False # TODO
 SCREEN_RESOLUTION = tuple(pyautogui.size())
@@ -28,11 +29,11 @@ def remove_screen_overflow(x, y):
     if x < 0:
         x = 0
     elif x >= SCREEN_RESOLUTION[0]:
-        x = SCREEN_RESOLUTION[0] # TODO
+        x = SCREEN_RESOLUTION[0]-1
     if y < 0:
         y = 0
     elif y >= SCREEN_RESOLUTION[1]:
-        y = SCREEN_RESOLUTION[1] # TODO
+        y = SCREEN_RESOLUTION[1]-1
     x, y = int(x), int(y)
     return x, y
 
@@ -47,11 +48,21 @@ def mouse_move_to_with_tweening(x, y, dt):
     pyautogui.moveTo(x, y, dt, pyautogui.easeInQuad)
 
 
+def mouse_left_click():
+    pyautogui.click()
+
+
+def mouse_right_click():
+    pyautogui.click(button='right')
+
+
 def get_mv_data():
     if os.path.isfile(MV_FILE_PATH):
-        json_file = open(MV_FILE_PATH, "r")
-        data = json.load(json_file)
-        json_file.close()
+        with zipfile.ZipFile(MV_FILE_PATH, "r", zipfile.ZIP_DEFLATED) as z:
+            assert(len(z.namelist()) == 1)
+            filename = z.namelist()[0]
+            with z.open(filename) as f:
+                data = json.loads(f.read())
     else:
         # TODO: raise exception
         pass

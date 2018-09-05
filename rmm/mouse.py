@@ -58,20 +58,20 @@ class RealisticMouse:
         assert(self.get_position() == (x, y))
     
     def unrealistic_move_to(self, x, y):
-        dt = .5 # TODO
+        dt = .3 # TODO
         mouse_move_to_with_tweening(x, y, dt)
 
     def move_to(self, x1, y1):
         x0, y0 = self.get_position()
         _x0, _y0, _x1, _y1, movement = self.closest(x0, y0, x1, y1)
         assert((x0, y0) == (_x0, _y0))
-        print('Mouse movement: (%i, %i) -> (%i, %i) -> (%i, %i)' % \
-            (x0, y0, _x1, _y1, x1, y1))
         movement.replay()
         self.unrealistic_move_to(x1, y1)
     
     def left_click(self):
-        pass
+        mouse_left_click()
+        # TODO: random move
     
     def right_click(self):
-        pass
+        mouse_right_click()
+        # TODO: random move
