@@ -4,6 +4,12 @@
 
 import pyautogui
 
+import os
+
+
+file_dir, _ = os.path.split(__file__)
+DATA_PATH = os.path.join(file_dir, "data")
+
 
 def get_screen_size():
     return tuple(pyautogui.size())

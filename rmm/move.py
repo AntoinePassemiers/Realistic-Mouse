@@ -70,7 +70,7 @@ class GUI:
         self.red_pressed = True
         self.movements.append(MouseMovement())
         self.movements[-1].start_recording()
-
+    
 
 class Simulator:
 

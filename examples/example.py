@@ -4,6 +4,7 @@
 
 from rmm.mouse import RealisticMouse
 from rmm.move import *
+from rmm.utils import DATA_PATH
 
 import os
 import copy
@@ -14,14 +15,18 @@ import pyautogui
 
 if __name__ == '__main__':
 
+    MV_FILE_PATH = os.path.join(DATA_PATH, 'movements.json')
+
     pyautogui.FAILSAFE = False # TODO
 
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=['mouse', 'trackpad', 'simulate'])
     args = parser.parse_args()
 
-    if os.path.isfile('movements.json'):
-        json_file = open('movements.json', "r")
+    print(MV_FILE_PATH)
+
+    if os.path.isfile(MV_FILE_PATH):
+        json_file = open(MV_FILE_PATH, "r")
         data = json.load(json_file)
         json_file.close()
     else:
@@ -42,6 +47,6 @@ if __name__ == '__main__':
         simulator = Simulator(mouse)
         simulator.simulate()
 
-    json_file = open('movements.json', "w")
-    json.dump(data, json_file, indent=4)
+    json_file = open(MV_FILE_PATH, "w")
+    json.dump(data, json_file)
     json_file.close()
