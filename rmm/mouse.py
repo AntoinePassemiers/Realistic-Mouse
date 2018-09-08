@@ -5,6 +5,7 @@
 from rmm.movement import MouseMovement
 from rmm.utils import *
 
+import copy
 import numpy as np
 
 
@@ -48,7 +49,7 @@ class RealisticMouse:
         c = np.argmin(diff)
         _x0, _y0, _x1, _y1 = positions[c]
         movement = self.movements[self.mode][c]
-        movement -= transformation[c]
+        movement = movement - transformation[c]
         return _x0, _y0, _x1, _y1, movement
 
     def get_position(self):

@@ -1,4 +1,4 @@
-# Realistic mouse for building click bots
+# Realistic mouse for building undetectable click bots
 
 ## How to use it
 

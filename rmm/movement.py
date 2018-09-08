@@ -57,6 +57,15 @@ class MouseMovement:
         x, y = c
         self.coords = list(np.asarray(self.coords) - np.asarray([x, y]))
         return self
+
+    def __sub__(self, c):
+        x, y = c
+        new_movement = MouseMovement()
+        new_movement.last = self.last
+        new_movement.recording = self.recording
+        new_movement.timestamps = self.timestamps
+        new_movement.coords = list(np.asarray(self.coords) - np.asarray([x, y]))
+        return new_movement
     
     def __len__(self):
         return len(self.coords)
