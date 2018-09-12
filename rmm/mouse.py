@@ -5,6 +5,7 @@
 from rmm.movement import MouseMovement
 from rmm.utils import *
 
+import time
 import copy
 import numpy as np
 
@@ -62,17 +63,34 @@ class RealisticMouse:
         dt = .3 # TODO
         mouse_move_to_with_tweening(x, y, dt)
 
-    def move_to(self, x1, y1):
+    def random_coords_in_area(self, x1, y1, x2, y2):
+        # Make sure that x2 > x1 and y2 > y1
+        x = np.random.randint(x1, x2)
+        y = np.random.randint(y1, y2)
+        return x, y
+
+    def move_to(self, *args):
+        if len(args) == 4:
+            x1, y1 = self.random_coords_in_area(*args)
+        else:
+            x1, y1 = args[0], args[1]
         x0, y0 = self.get_position()
         _x0, _y0, _x1, _y1, movement = self.closest(x0, y0, x1, y1)
         assert((x0, y0) == (_x0, _y0))
         movement.replay()
         self.unrealistic_move_to(x1, y1)
     
-    def left_click(self):
-        mouse_left_click()
+    def click(self, *args, **kwargs):
+        self.left_click(*args, **kwargs)
+
+    def left_click(self, n_clicks=1):
+        for i in range(n_clicks):
+            mouse_left_click()
+            time.sleep(0.2)
         # TODO: random move
     
-    def right_click(self):
-        mouse_right_click()
+    def right_click(self, n_clicks=1):
+        for i in range(n_clicks):
+            mouse_right_click()
+            time.sleep(0.2)
         # TODO: random move
