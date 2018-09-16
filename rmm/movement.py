@@ -17,14 +17,15 @@ class MouseMovement:
         self.last = None
         self.recording = False
     
-    def time_millis(self):
+    @staticmethod
+    def time_millis():
         return int(round(time.time() * 1000.))
 
     def record_current_position(self):
         current = get_mouse_position()
         if current != self.last:
             self.coords.append(current)
-            self.timestamps.append(self.time_millis())
+            self.timestamps.append(MouseMovement.time_millis())
         self.last = current
     
     def record(self):

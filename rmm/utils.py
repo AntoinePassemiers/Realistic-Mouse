@@ -12,6 +12,8 @@ import zipfile
 file_dir, _ = os.path.split(__file__)
 DATA_PATH = os.path.join(file_dir, 'data')
 MV_FILE_PATH = os.path.join(DATA_PATH, 'movements.zip')
+SPECIAL_FILE_PATH = os.path.join(DATA_PATH, 'special.zip')
+CLICK_FILE_PATH = os.path.join(DATA_PATH, 'click_diffs.npy')
 
 pyautogui.FAILSAFE = False # TODO
 SCREEN_RESOLUTION = tuple(pyautogui.size())
@@ -56,17 +58,25 @@ def mouse_right_click():
     pyautogui.click(button='right')
 
 
-def get_mv_data():
-    if os.path.isfile(MV_FILE_PATH):
-        with zipfile.ZipFile(MV_FILE_PATH, "r", zipfile.ZIP_DEFLATED) as z:
+def get_mouse_data(filepath):
+    if os.path.isfile(filepath):
+        with zipfile.ZipFile(filepath, "r", zipfile.ZIP_DEFLATED) as z:
             assert(len(z.namelist()) == 1)
             filename = z.namelist()[0]
             with z.open(filename) as f:
-                data = json.loads(f.read())
+                data = json.loads(f.read().decode('utf-8'))
     else:
         # TODO: raise exception
         pass
     return data
+
+
+def get_mv_data():
+    return get_mouse_data(MV_FILE_PATH)
+
+
+def get_special_data():
+    return get_mouse_data(SPECIAL_FILE_PATH)
 
 
 class NoDataFoundException(Exception):

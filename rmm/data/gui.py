@@ -12,6 +12,7 @@ import zipfile
 import json
 import argparse
 import numpy as np
+import scipy.interpolate
 try:
     import tkinter as tk
 except ImportError:
@@ -20,7 +21,9 @@ except ImportError:
 
 class GUI:
 
-    def __init__(self):
+    def __init__(self, action):
+        self.click_movements = list()
+        self.wait_movements = list()
         self.movements = list()
         self.blue_pressed = self.red_pressed = True
         self.src = self.dest = None
@@ -37,13 +40,34 @@ class GUI:
         self.button_red = tk.Button(self.master, command=self.on_click_red, bg='red')
         self.button_red.config(height=button_size, width=button_size*2)
 
-        self.place_buttons()
-        self.master.mainloop()
+        self.last_click = None
+        self.click_time_diffs = []
+        self.button_green = tk.Button(self.master, command=self.on_click_green, bg='green')
+        self.button_green.config(height=20, width=20*2)
+
+        if action == 'move':
+            self.place_buttons()
+        elif action == 'wait':
+            pass
+
+        self.master.mainloop()          
     
     def random_coords(self, pad=100):
         x = np.random.randint(pad, self.width-pad)
         y = np.random.randint(pad, self.height-pad)
         return x, y
+    
+    def place_green_button(self):
+        self.button_green.place_forget()
+        self.button_green.place(x=500, y=200)
+    
+    def on_click_green(self):
+        click = MouseMovement.time_millis()
+        if self.last_click is not None:
+            if click - self.last_click < 500.0:
+                diff = int(click - self.last_click)
+                self.click_time_diffs.append(diff - (diff % 5))
+        self.last_click = click
 
     def place_buttons(self):
         self.button_red.place_forget()
@@ -73,11 +97,12 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=['mouse', 'trackpad'])
+    parser.add_argument("action", choices=['move', 'click', 'wait'])
     args = parser.parse_args()
 
     data = get_mv_data()
 
-    gui = GUI()
+    gui = GUI(args.action)
     data[args.mode] += [movement.__dict__() for movement in gui.movements]
 
     src_json_path = os.path.join(os.path.split(__file__)[0], 'movements.json')
