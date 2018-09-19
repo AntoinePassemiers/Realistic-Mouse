@@ -3,7 +3,7 @@
 # author: Antoine Passemiers
 
 from rmm.mouse import RealisticMouse
-from rmm.move import *
+from rmm.movement import *
 from rmm.utils import *
 
 import os
