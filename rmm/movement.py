@@ -41,12 +41,17 @@ class MouseMovement:
         self.recording = False
     
     def replay(self):
-        pauses = np.diff(self.timestamps) / 1000.
+        pauses = np.diff(self.timestamps)
         x, y = self.coords[0]
+        t1 = MouseMovement.time_millis()
         move_mouse_to(x, y)
         for i in range(len(self.coords)-1):
-            time.sleep(pauses[i])
+            t2 = MouseMovement.time_millis()
+            duration = pauses[i] - (t2 - t1)
+            assert(duration >= 0)
+            time.sleep(float(pauses[i]) / 1000.)
             x, y = self.coords[i+1]
+            t1 = MouseMovement.time_millis()
             move_mouse_to(x, y)
     
     def __iadd__(self, c):
