@@ -43,7 +43,8 @@ class Circle(Shape):
     def sample(self):
         a = 2. * np.pi * np.random.rand()
         r = self.radius * np.sqrt(np.random.rand())
-        x, y = r * np.cos(a), r * np.sin(a)
+        x = r * np.cos(a) + self.x
+        y = r * np.sin(a) + self.y
         x = int(np.round(x))
         y = int(np.round(y))
         return x, y

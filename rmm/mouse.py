@@ -70,7 +70,6 @@ class RealisticMouse:
         mouse_move_to_with_tweening(x, y, dt)
 
     def move_to(self, *args):
-        print(args)
         if len(args) == 1 and isinstance(args[0], Shape):
             x1, y1 = args[0].sample()
         elif len(args) == 4:
