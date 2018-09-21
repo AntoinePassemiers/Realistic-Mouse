@@ -4,6 +4,7 @@
 
 from rmm.distribution import Distribution
 from rmm.movement import MouseMovement
+from rmm.shape import Shape, Box
 from rmm.utils import *
 
 import time
@@ -64,18 +65,15 @@ class RealisticMouse:
     def ensure_position(self, x, y):
         assert(self.get_position() == (x, y))
 
-    def random_coords_in_area(self, x1, y1, x2, y2):
-        # Make sure that x2 > x1 and y2 > y1
-        x = np.random.randint(x1, x2)
-        y = np.random.randint(y1, y2)
-        return x, y
-
     def linear_move(self, x, y):
         dt = .3 # TODO
         mouse_move_to_with_tweening(x, y, dt)
 
     def move_to(self, *args):
+        if len(args) == 1 and type(args[0]) == Shape:
+            x1, y1 = args[0].sample()
         if len(args) == 4:
+            x1, y1 = Box(*args).sample()
             x1, y1 = self.random_coords_in_area(*args)
         else:
             x1, y1 = args[0], args[1]
