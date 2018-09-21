@@ -14,7 +14,7 @@ class Distribution:
         self.pdf = np.asarray(pdf)
         self.pdf = self.pdf / pdf.sum()
         self.proba = np.cumsum(self.pdf)
-        self.proba[0] = 0.
+        self.proba[:50] = 0.
         self.proba[-1] = 1.
     
     def sample(self, n_samples=1):
