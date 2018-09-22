@@ -25,8 +25,8 @@ class Box(Shape):
         self.x1, self.y1 = x1, y1
     
     def sample(self):
-        x = np.random.randint(self.x1, self.x2)
-        y = np.random.randint(self.y1, self.y2)
+        x = np.random.randint(self.x0, self.x1)
+        y = np.random.randint(self.y0, self.y1)
         return x, y
     
     def area(self):
@@ -140,6 +140,7 @@ class Polygon(Shape):
         self.triangles = self.ear_clipping()
         self.weights = np.asarray([triangle.area() \
             for triangle in self.triangles])
+        print(self.weights)
         self.weights /= self.weights.sum()
     
     def ear_clipping(self):
@@ -173,22 +174,3 @@ class Polygon(Shape):
     
     def area(self):
         return sum([triangle.area() for triangle in self.triangles])
-
-
-if __name__ == '__main__':
-    polyline = Polyline()
-    polyline.add(0, 0)
-    polyline.add(4, 0)
-    polyline.add(4, 2)
-    polyline.add(1, 2)
-    polyline.add(1, 5)
-    polyline.add(0, 5)
-    polyline.stop()
-
-    print(polyline.angles)
-
-    polygon = Polygon(polyline)
-
-    print(polygon.area())
-    print(polygon.sample())
-

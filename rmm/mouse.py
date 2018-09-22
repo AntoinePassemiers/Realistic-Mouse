@@ -74,7 +74,6 @@ class RealisticMouse:
             x1, y1 = args[0].sample()
         elif len(args) == 4:
             x1, y1 = Box(*args).sample()
-            x1, y1 = self.random_coords_in_area(*args)
         else:
             x1, y1 = args[0], args[1]
         x0, y0 = self.get_position()
