@@ -55,13 +55,38 @@ class Circle(Shape):
 
 class Triangle(Shape):
 
-    def __init__(self, e1, e2, f1, f2, g1, g2):
-        self.E = np.asarray([[e1, e2], [f1, f2], [g1, g2]])
-        self.A = np.asarray([[0, 0, 1], [1, 0, 1], [0, 1, 1]])
-        self.A_prime = np.linalg.inv(self.A)
-        self.P = np.dot(self.A_prime, self.E)        
+    A = np.asarray([[0, 0, 1], [1, 0, 1], [0, 1, 1]])
+    A_PRIME = np.linalg.inv(A)
+
+    def __init__(self, e, f, g):
+        self.E = np.asarray([e, f, g])
+        self.P = None
+    
+    def cross_product_z_coord(self, a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    def on_same_side(self, a, b, l1, l2):
+        z1 = self.cross_product_z_coord(l2-l1, a-l1)
+        z2 = self.cross_product_z_coord(l2-l1, b-l1)
+        if z1 == 0 or z2 == 0:
+            return True
+        else:
+            return np.positive(z1) == np.positive(z2)
+    
+    def contains(self, p):
+        e, f, g = self.E[0], self.E[1], self.E[2]
+        if not self.on_same_side(p, e, f, g):
+            return False
+        elif not self.on_same_side(p, f, e, g):
+            return False
+        elif not self.on_same_side(p, g, e, f):
+            return False
+        else:
+            return True
 
     def sample(self):
+        if self.P is None:
+            self.P = np.dot(Triangle.A_PRIME, self.E)
         r1 = np.random.rand()
         r2 = np.random.rand()        
         x1 = np.sqrt(r1) * (1. - r2)
@@ -103,7 +128,7 @@ class Polyline:
         self.is_clockwise = (np.sum(self.angles) >= 0)
 
     def add(self, x, y):
-        self.vertices.append([x, y])
+        self.vertices.append((x, y))
         if len(self.vertices) >= 3:
             a = self.vertices[-3]
             b = self.vertices[-2]
@@ -123,10 +148,20 @@ class Polyline:
         angle = np.arctan2(det, dot)
         return angle
     
-    def remove(self, key):
+    def remove(self, point):
+        key = self.vertices.index(point)
         del self.vertices[key]
+        del self.angles[(key + 1) % len(self.angles)]
+    
+    def get_adjacent_vertices(self, b):
+        i = self.vertices.index(b)
+        a = self.__getitem__(i-1)
+        c = self.__getitem__(i+1)
+        return a, c
     
     def __getitem__(self, key):
+        if type(key) == int:
+            key = key % self.__len__()
         return self.vertices[key]
     
     def __len__(self):
@@ -140,33 +175,64 @@ class Polygon(Shape):
         self.triangles = self.ear_clipping()
         self.weights = np.asarray([triangle.area() \
             for triangle in self.triangles])
-        print(self.weights)
         self.weights /= self.weights.sum()
     
     def ear_clipping(self):
-        """Triangulation based on ear clipping method."""
+        """Triangulation based on ear clipping method.
+
+        References:
+            https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
+        """
         polyline = copy.deepcopy(self.polyline)
+
+        convex_vertices = set()
+        reflex_vertices = set()
+        ear_tips = set()
+        for p in range(len(polyline)):
+            b = polyline[p]
+            if self.is_convex_vertex(polyline, b):
+                convex_vertices.add(b)
+                if self.is_ear_tip(polyline, b):
+                    ear_tips.add(b)
+            else:
+                reflex_vertices.add(b)
+        
         triangles = list()
-        for i in range(len(polyline) - 2):
-            for a in range(len(polyline)):
-                b = (a + 1) % len(polyline)
-                c = (a + 2) % len(polyline)
-                if self.is_convex_at(polyline, a, b, c):
-                    e1, e2 = polyline[a][0], polyline[a][1]
-                    f1, f2 = polyline[b][0], polyline[b][1]
-                    g1, g2 = polyline[c][0], polyline[c][1]
-                    polyline.remove(b)
-                    triangles.append(Triangle(e1, e2, f1, f2, g1, g2))
-                    break
+        n_triangles = len(polyline) - 2
+        for i in range(n_triangles):
+            if len(ear_tips) == 0:
+                break
+            ear_id = int(np.random.randint(0, len(ear_tips)))
+            b = list(ear_tips)[ear_id]
+            a, c = polyline.get_adjacent_vertices(b)
+            triangles.append(Triangle(a, b, c))
+            polyline.remove(b)
+            ear_tips.remove(b)
+            convex_vertices.remove(b)
+            for p in [a, c]:
+                if (p in ear_tips) and not self.is_ear_tip(polyline, p):
+                    ear_tips.remove(p)
+                elif (p in reflex_vertices) and self.is_convex_vertex(polyline, p):
+                    reflex_vertices.remove(p)
+                    convex_vertices.add(p)
+                if (p in convex_vertices) and self.is_ear_tip(polyline, p):
+                    ear_tips.add(p)
         return triangles
     
-    def is_convex_at(self, polyline, a, b, c):
-        a = polyline[a]
-        b = polyline[b]
-        c = polyline[c]
+    def is_convex_vertex(self, polyline, b):
+        a, c = polyline.get_adjacent_vertices(b)
         return (Polyline.compute_angle(a, b, c) >= 0) == polyline.is_clockwise
-
-        return True # TODO
+    
+    def is_ear_tip(self, polyline, b):
+        a, c = polyline.get_adjacent_vertices(b)
+        triangle = Triangle(a, b, c)
+        ear_tip = True
+        for p in polyline.vertices:
+            if p not in [a, b, c]:
+                if triangle.contains(p):
+                    ear_tip = False
+                    break
+        return ear_tip
     
     def sample(self):
         triangle = np.random.choice(self.triangles, p=self.weights)
