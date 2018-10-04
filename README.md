@@ -23,3 +23,4 @@ $ sudo python setup.py install
 
 * numpy >= 1.13.3
 * pyautogui
+* mss (optional, but required in order to support multiple monitors)
