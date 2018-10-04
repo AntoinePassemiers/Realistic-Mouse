@@ -55,6 +55,24 @@ class MouseMovement:
             t1 = MouseMovement.time_millis()
             move_mouse_to(x, y, multi_monitor=multi_monitor)
     
+    @staticmethod
+    def linear_tweening(x1, y1, multi_monitor=False):
+        x0, y0 = get_mouse_position()
+        distance = np.sqrt((x1 - x0) ** 2. + (y1 - y0) ** 2.)
+        t = 0.3 # TODO
+        dt = 0.01
+        for ct in np.arange(0, t, dt):
+            alpha = float(ct) / t
+            x = alpha * x1 + (1. - alpha) * x0
+            y = alpha * y1 + (1. - alpha) * y0
+            t1 = MouseMovement.time_millis()
+            move_mouse_to(x, y, multi_monitor=multi_monitor)
+            t2 = MouseMovement.time_millis()
+            duration = dt - (t2 - t1)
+            if duration > 0:
+                time.sleep(float(duration) / 1000.)
+        move_mouse_to(x1, y1, multi_monitor=multi_monitor)
+    
     def __iadd__(self, c):
         x, y = c
         self.coords = list(np.asarray(self.coords) + np.asarray([x, y]))

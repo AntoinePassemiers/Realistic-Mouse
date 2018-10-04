@@ -9,6 +9,24 @@ from abc import abstractmethod, ABCMeta
 
 class Shape(metaclass=ABCMeta):
 
+    def __iadd__(self, point):
+        dx, dy = point
+        coords = self.get_coords()
+        new_coords = list()
+        for x, y in coords:
+            new_coords.append((x + dx, y + dy))
+        self.set_coords(new_coords)
+        return self
+
+    def __isub__(self, point):
+        dx, dy = point
+        coords = self.get_coords
+        new_coords = list()
+        for x, y in coords:
+            new_coords.append((x - dx, y - dy))
+        self.set_coords(new_coords)
+        return self
+
     @abstractmethod
     def sample(self):
         pass
@@ -16,6 +34,40 @@ class Shape(metaclass=ABCMeta):
     @abstractmethod
     def area(self):
         pass
+    
+    @abstractmethod
+    def contains(self, x, y):
+        pass
+    
+    @abstractmethod
+    def get_coords(self):
+        pass
+    
+    @abstractmethod
+    def set_coords(self, points):
+        pass
+
+
+class Point(Shape):
+
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+    
+    def sample(self):
+        return self.x, self.y
+    
+    def area(self):
+        return 0 # TODO: or 1?
+    
+    def contains(self, x, y):
+        return (self.x == x) and (self.y == y)
+    
+    def get_coords(self):
+        return [(self.x, self.y)]
+    
+    def set_coords(self, points):
+        point = points[0]
+        self.x, self.y = point[0], point[1]
 
 
 class Box(Shape):
@@ -31,6 +83,16 @@ class Box(Shape):
     
     def area(self):
         return (self.x1 - self.x0) * (self.y1 - self.y0)
+    
+    def contains(self, x, y):
+        return (self.x0 <= x <= self.x1) and (self.y0 <= y <= self.y1)
+    
+    def get_coords(self):
+        return [(self.x0, self.y0), (self.x1, self.y1)]
+    
+    def set_coords(self, points):
+        p0, p1 = points
+        self.x0, self.y0, self.x1, self.y1 = p0[0], p0[1], p1[0], p1[1]
 
 
 class Circle(Shape):
@@ -51,6 +113,17 @@ class Circle(Shape):
     
     def area(self):
         return np.pi * self.radius ** 2.
+    
+    def contains(self, x, y):
+        distance = np.sqrt((x - self.x) ** 2. + (y - self.y) ** 2.)
+        return distance <= self.radius
+
+    def get_coords(self):
+        return [(self.x, self.y)]
+    
+    def set_coords(self, points):
+        center = points[0]
+        self.x, self.y = center[0], center[1]
 
 
 class Triangle(Shape):
@@ -73,7 +146,8 @@ class Triangle(Shape):
         else:
             return np.positive(z1) == np.positive(z2)
     
-    def contains(self, p):
+    def contains(self, x, y):
+        p = (x, y)
         e, f, g = self.E[0], self.E[1], self.E[2]
         if not self.on_same_side(p, e, f, g):
             return False
@@ -102,6 +176,15 @@ class Triangle(Shape):
         side_c = np.sqrt(np.sum((self.E[0] - self.E[2]) ** 2))
         s = float(side_a + side_b + side_c) / 2.
         return np.sqrt(s * (s - side_a) * (s - side_b) * (s - side_c))
+
+    def get_coords(self):
+        return [self.E[0], self.E[1], self.E[2]]
+    
+    def set_coords(self, points):
+        a, b, c = points
+        self.E[0][0], self.E[0][1] = a[0], a[1]
+        self.E[1][0], self.E[1][1] = b[0], b[1]
+        self.E[2][0], self.E[2][1] = c[0], c[1]
 
 
 class Polyline:
@@ -171,19 +254,18 @@ class Polyline:
 class Polygon(Shape):
 
     def __init__(self, polyline):
-        self.polyline = polyline
-        self.triangles = self.ear_clipping()
+        self.triangles = self.ear_clipping(polyline)
         self.weights = np.asarray([triangle.area() \
             for triangle in self.triangles])
         self.weights /= self.weights.sum()
     
-    def ear_clipping(self):
+    def ear_clipping(self, polyline):
         """Triangulation based on ear clipping method.
 
         References:
             https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
         """
-        polyline = copy.deepcopy(self.polyline)
+        polyline = copy.deepcopy(polyline)
 
         convex_vertices = set()
         reflex_vertices = set()
@@ -229,7 +311,7 @@ class Polygon(Shape):
         ear_tip = True
         for p in polyline.vertices:
             if p not in [a, b, c]:
-                if triangle.contains(p):
+                if triangle.contains(*p):
                     ear_tip = False
                     break
         return ear_tip
@@ -240,3 +322,24 @@ class Polygon(Shape):
     
     def area(self):
         return sum([triangle.area() for triangle in self.triangles])
+
+    def contains(self, x, y):
+        contained = False
+        for triangle in self.triangles:
+            if triangle.contains(x, y):
+                contained = True
+                break
+        return contained
+
+    def get_coords(self):
+        coords = list()
+        for triangle in self.triangles:
+            coords += triangle.get_coords()
+        return coords
+    
+    def set_coords(self, points):
+        for i in range(0, len(points), 3):
+            a, b, c = points[i:i+3]
+            self.E[0][0], self.E[0][1] = a[0], a[1]
+            self.E[1][0], self.E[1][1] = b[0], b[1]
+            self.E[2][0], self.E[2][1] = c[0], c[1]
