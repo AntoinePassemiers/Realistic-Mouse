@@ -84,9 +84,10 @@ class RealisticMouse:
         area = self.convert_to_area(*args, monitor=monitor)
         x1, y1 = area.sample()
         x0, y0 = self.get_position()
-        _x0, _y0, _x1, _y1, movement = self.__closest(x0, y0, x1, y1)
-        assert((x0, y0) == (_x0, _y0))
-        movement.replay(multi_monitor=self.multi_monitor)
+        if not area.contains(x0, y0):
+            _x0, _y0, _x1, _y1, movement = self.__closest(x0, y0, x1, y1)
+            assert((x0, y0) == (_x0, _y0))
+            movement.replay(multi_monitor=self.multi_monitor)
         if not isinstance(area, Point):
             if not area.contains(_x1, _y1):
                 MouseMovement.linear_tweening(
