@@ -3,7 +3,14 @@
 # author: Antoine Passemiers
 
 import pyautogui
+try:
+    from mss import mss
+    MSS_AVAILABLE = True
+except ImportError:
+    MSS_AVAILABLE = False
 
+import ctypes
+import platform
 import os
 import json
 import zipfile
@@ -36,13 +43,40 @@ def remove_screen_overflow(x, y):
         y = 0
     elif y >= SCREEN_RESOLUTION[1]:
         y = SCREEN_RESOLUTION[1]-1
-    x, y = int(x), int(y)
     return x, y
 
 
-def move_mouse_to(x, y):
-    x, y = remove_screen_overflow(x, y)
-    pyautogui.platformModule._moveTo(x, y)
+def requires_mss(func):
+    def new_func(*args, **kwargs):
+        if MSS_AVAILABLE:
+            return func(*args, **kwargs)
+        else:
+            raise ImportError(
+                'MSS should be installed in order to use this function.')
+    return new_func
+
+
+if platform.system() == 'Windows':
+    def __move_to(x, y):
+        ctypes.windll.user32.SetCursorPos(x, y)
+else:
+    raise NotImplementedError()
+
+
+@requires_mss
+def get_monitor_coords():
+    with mss() as sct:
+        coords = sct.monitors
+    return coords
+
+
+def move_mouse_to(x, y, multi_monitor=False):
+    x, y = int(round(x)), int(round(y))
+    if not multi_monitor:
+        x, y = remove_screen_overflow(x, y)
+        pyautogui.platformModule._moveTo(x, y)
+    else:
+        __move_to(int(x), int(y))
 
 
 def mouse_move_to_with_tweening(x, y, dt):

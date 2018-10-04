@@ -20,8 +20,9 @@ class MouseMode:
 
 class RealisticMouse:
 
-    def __init__(self, mode=MouseMode.TRACKPAD):
+    def __init__(self, mode=MouseMode.TRACKPAD, multi_monitor=False):
         movements = get_mv_data()
+        self.multi_monitor = multi_monitor
         self.mode = mode
         for mode in [MouseMode.TRACKPAD, MouseMode.MOUSE]:
             for i in range(len(movements[mode])):
@@ -65,11 +66,24 @@ class RealisticMouse:
     def ensure_position(self, x, y):
         assert(self.get_position() == (x, y))
 
-    def linear_move(self, x, y):
-        dt = .3 # TODO
-        mouse_move_to_with_tweening(x, y, dt)
+    def linear_tweening(self, x1, y1):
+        x0, y0 = self.get_position()
+        distance = np.sqrt((x1 - x0) ** 2. + (y1 - y0) ** 2.)
+        t = 2 # TODO
+        dt = 0.01
+        for ct in np.arange(0, t, dt):
+            alpha = float(ct) / t
+            x = alpha * x1 + (1. - alpha) * x0
+            y = alpha * y1 + (1. - alpha) * y0
+            t1 = MouseMovement.time_millis()
+            move_mouse_to(x, y, multi_monitor=self.multi_monitor)
+            t2 = MouseMovement.time_millis()
+            duration = dt - (t2 - t1)
+            if duration > 0:
+                time.sleep(float(duration) / 1000.)
+        move_mouse_to(x1, y1, multi_monitor=self.multi_monitor)
 
-    def move_to(self, *args):
+    def move_to(self, *args, monitor=0):
         if len(args) == 1 and isinstance(args[0], Shape):
             x1, y1 = args[0].sample()
         elif len(args) == 4:
@@ -79,16 +93,16 @@ class RealisticMouse:
         x0, y0 = self.get_position()
         _x0, _y0, _x1, _y1, movement = self.closest(x0, y0, x1, y1)
         assert((x0, y0) == (_x0, _y0))
-        movement.replay()
+        movement.replay(multi_monitor=self.multi_monitor)
         if len(args) == 4:
             if not ((args[0] <= _x1 <= args[2]) and \
                     (args[1] <= _y1 < args[3])):
-                self.linear_move(x1, y1)
+                self.linear_tweening(x1, y1)
             else:
                 if random.random() < 0.4: # TODO
-                    self.linear_move(x1, y1)
+                    self.linear_tweening(x1, y1)
         else:
-            self.linear_move(x1, y1)
+            self.linear_tweening(x1, y1)
     
     def move_away_from(self, x0, y0, x1, y1):
         x, y = random.choice([(x0, y0), (x0, y1), (x1, y0), (x1, y1)])
