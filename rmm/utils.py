@@ -60,7 +60,7 @@ if platform.system() == 'Windows':
     def __move_to(x, y):
         ctypes.windll.user32.SetCursorPos(x, y)
 else:
-    raise NotImplementedError()
+    pass # raise NotImplementedError()
 
 
 @requires_mss
