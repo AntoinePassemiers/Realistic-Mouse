@@ -9,20 +9,8 @@ from rmm.shape import Polyline, Polygon, Shape
 import argparse
 
 
-"""
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'mode', choices=[MouseMode.TRACKPAD, MouseMode.MOUSE])
-    args = parser.parse_args()
-        
-    mouse = RealisticMouse(mode=args.mode)
-    simulator = Simulator(mouse)
-    simulator.simulate()
-"""
-
-if __name__ == '__main__':
+def test_polygon():
     polyline = Polyline()
     polyline.add(500, 300)
     polyline.add(600, 300)
@@ -38,10 +26,21 @@ if __name__ == '__main__':
     polyline.add(500, 400)
     polyline.stop()
 
-
     polygon = Polygon(polyline)
 
     mouse = RealisticMouse()
     while True:
         mouse.move_to(polygon)
         mouse.click()
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'mode', choices=[MouseMode.TRACKPAD, MouseMode.MOUSE])
+    args = parser.parse_args()
+        
+    mouse = RealisticMouse(mode=args.mode)
+    simulator = Simulator(mouse)
+    simulator.simulate()
