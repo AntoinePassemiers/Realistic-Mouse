@@ -84,6 +84,14 @@ def mouse_move_to_with_tweening(x, y, dt):
     pyautogui.moveTo(x, y, dt, pyautogui.easeInQuad)
 
 
+def mouse_down(button='left'):
+    pyautogui.mouseDown(button=button)
+
+
+def mouse_up(button='left'):
+    pyautogui.mouseUp(button=button)
+
+
 def mouse_left_click():
     pyautogui.click()
 

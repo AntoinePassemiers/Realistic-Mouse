@@ -80,11 +80,11 @@ class RealisticMouse:
             area += (dx, dy)
         return area
 
-    def move_to(self, *args, monitor=0):
+    def move_to(self, *args, monitor=0, full=False):
         area = self.convert_to_area(*args, monitor=monitor)
         xf, yf = area.sample()
         x0, y0 = self.get_position()
-        if not area.contains(x0, y0):
+        if (not area.contains(x0, y0)) or full:
             _, _, _x1, _y1, movement = self.__closest(x0, y0, xf, yf)
             _, _, _x2, _y2, movement2 = self.__closest(_x1, _y1, xf, yf)
             for mov in [movement, movement2]:
@@ -114,6 +114,10 @@ class RealisticMouse:
         self.move_to(self, x, y)
 
     def click(self, *args, **kwargs):
+        x0, y0 = self.get_position()
+        for x, y in [(x0-1, y0), (x0, y0), (x0+1, y0), (x0, y0)]:
+            move_mouse_to(x, y, multi_monitor=self.multi_monitor)
+            time.sleep(0.05)
         self.left_click(*args, **kwargs)
 
     def left_click(self, n_clicks=1):
@@ -121,14 +125,18 @@ class RealisticMouse:
             dt = self.click_distribution.sample() / 1000.0
             time.sleep(dt)
             mouse_left_click()
+            #mouse_up(button='left')
+            #time.sleep(0.01)
+            #mouse_down(button='left')
         # TODO: random move
     
     def right_click(self, n_clicks=1):
         for i in range(n_clicks):
+            dt = self.click_distribution.sample() / 1000.0
+            time.sleep(dt)
             mouse_right_click()
-            time.sleep(0.2)
         # TODO: random move
-
+    
     def wait(self, n_seconds, p=0.5):
         if random.random() < p:
             time.sleep(n_seconds)
