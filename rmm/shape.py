@@ -338,8 +338,5 @@ class Polygon(Shape):
         return coords
     
     def set_coords(self, points):
-        for i in range(0, len(points), 3):
-            a, b, c = points[i:i+3]
-            self.E[0][0], self.E[0][1] = a[0], a[1]
-            self.E[1][0], self.E[1][1] = b[0], b[1]
-            self.E[2][0], self.E[2][1] = c[0], c[1]
+        for i, triangle in zip(range(0, len(points), 3), self.triangles):
+            triangle.set_coords(points[i:i+3])
