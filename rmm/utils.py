@@ -63,7 +63,7 @@ if platform.system() == 'Windows':
         ctypes.windll.user32.SetCursorPos(x, y)
 elif platform.system() == 'Linux':
     def get_backend():
-        from xlib import X, display
+        from Xlib import X, display
         backend = {}
         backend['display'] = display.Display()
         backend['screen'] = backend['display'].screen()
