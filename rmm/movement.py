@@ -40,11 +40,11 @@ class MouseMovement:
     def stop_recording(self):
         self.recording = False
     
-    def replay(self, multi_monitor=False):
+    def replay(self, backend, multi_monitor=False):
         pauses = np.diff(self.timestamps)
         x, y = self.coords[0]
         t1 = MouseMovement.time_millis()
-        move_mouse_to(x, y, multi_monitor=multi_monitor)
+        move_mouse_to(backend, x, y, multi_monitor=multi_monitor)
         for i in range(len(self.coords)-1):
             t2 = MouseMovement.time_millis()
             duration = pauses[i] - (t2 - t1)
@@ -53,10 +53,10 @@ class MouseMovement:
                 time.sleep(float(duration) / 1000.)
             x, y = self.coords[i+1]
             t1 = MouseMovement.time_millis()
-            move_mouse_to(x, y, multi_monitor=multi_monitor)
+            move_mouse_to(backend, x, y, multi_monitor=multi_monitor)
     
     @staticmethod
-    def linear_tweening(x1, y1, multi_monitor=False):
+    def linear_tweening(backend, x1, y1, multi_monitor=False):
         x0, y0 = get_mouse_position()
         distance = np.sqrt((x1 - x0) ** 2. + (y1 - y0) ** 2.)
         t = 0.3 # TODO
@@ -66,12 +66,12 @@ class MouseMovement:
             x = alpha * x1 + (1. - alpha) * x0
             y = alpha * y1 + (1. - alpha) * y0
             t1 = MouseMovement.time_millis()
-            move_mouse_to(x, y, multi_monitor=multi_monitor)
+            move_mouse_to(backend, x, y, multi_monitor=multi_monitor)
             t2 = MouseMovement.time_millis()
             duration = dt - (t2 - t1)
             if duration > 0:
                 time.sleep(float(duration) / 1000.)
-        move_mouse_to(x1, y1, multi_monitor=multi_monitor)
+        move_mouse_to(backend, x1, y1, multi_monitor=multi_monitor)
     
     def __iadd__(self, c):
         x, y = c

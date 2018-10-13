@@ -21,6 +21,7 @@ class MouseMode:
 class RealisticMouse:
 
     def __init__(self, mode=MouseMode.TRACKPAD, multi_monitor=False):
+        self.backend = get_backend()
         movements = get_mv_data()
         self.multi_monitor = multi_monitor
         if multi_monitor:
@@ -88,18 +89,18 @@ class RealisticMouse:
             _, _, _x1, _y1, movement = self.__closest(x0, y0, xf, yf)
             _, _, _x2, _y2, movement2 = self.__closest(_x1, _y1, xf, yf)
             for mov in [movement, movement2]:
-                mov.replay(multi_monitor=self.multi_monitor)
+                mov.replay(self.backend, multi_monitor=self.multi_monitor)
             if not isinstance(area, Point):
                 if not area.contains(_x1, _y1):
                     MouseMovement.linear_tweening(
-                        xf, yf, multi_monitor=self.multi_monitor)
+                        self.backend, xf, yf, multi_monitor=self.multi_monitor)
                 else:
                     if random.random() < 0.4: # TODO
                         MouseMovement.linear_tweening(
-                            xf, yf, multi_monitor=self.multi_monitor)
+                            self.backend, xf, yf, multi_monitor=self.multi_monitor)
             else:
                 MouseMovement.linear_tweening(
-                    xf, yf, multi_monitor=self.multi_monitor)
+                    self.backend, xf, yf, multi_monitor=self.multi_monitor)
     
     def move_away_from(self, x0, y0, x1, y1):
         # TODO: use convert_to_area
@@ -116,7 +117,7 @@ class RealisticMouse:
     def click(self, *args, **kwargs):
         x0, y0 = self.get_position()
         for x, y in [(x0-1, y0), (x0, y0), (x0+1, y0), (x0, y0)]:
-            move_mouse_to(x, y, multi_monitor=self.multi_monitor)
+            move_mouse_to(self.backend, x, y, multi_monitor=self.multi_monitor)
             time.sleep(0.05)
         self.left_click(*args, **kwargs)
 

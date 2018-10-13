@@ -57,8 +57,21 @@ def requires_mss(func):
 
 
 if platform.system() == 'Windows':
-    def __move_to(x, y):
+    def get_backend():
+        return {}
+    def __move_to(backend, x, y):
         ctypes.windll.user32.SetCursorPos(x, y)
+elif platform.system() == 'Linux':
+    def get_backend():
+        from xlib import X, display
+        backend = {}
+        backend['display'] = display.Display()
+        backend['screen'] = backend['display'].screen()
+        return backend
+    def __move_to(backend, x, y):
+        root = backend['screen'].root
+        root.warp_pointer(x, y)
+        backend['display'].sync()
 else:
     pass # raise NotImplementedError()
 
@@ -70,13 +83,13 @@ def get_monitor_coords():
     return coords
 
 
-def move_mouse_to(x, y, multi_monitor=False):
+def move_mouse_to(backend, x, y, multi_monitor=False):
     x, y = int(round(x)), int(round(y))
     if not multi_monitor:
         x, y = remove_screen_overflow(x, y)
         pyautogui.platformModule._moveTo(x, y)
     else:
-        __move_to(int(x), int(y))
+        __move_to(backend, int(x), int(y))
 
 
 def mouse_move_to_with_tweening(x, y, dt):
