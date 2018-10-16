@@ -12,6 +12,7 @@ except ImportError:
 import ctypes
 import platform
 import os
+import sys
 import json
 import zipfile
 
@@ -62,8 +63,8 @@ if platform.system() == 'Windows':
     def __move_to(backend, x, y):
         ctypes.windll.user32.SetCursorPos(x, y)
 elif platform.system() == 'Linux':
+    from Xlib import X, display
     def get_backend():
-        from Xlib import X, display
         backend = {}
         backend['display'] = display.Display()
         backend['screen'] = backend['display'].screen()
@@ -72,8 +73,14 @@ elif platform.system() == 'Linux':
         root = backend['screen'].root
         root.warp_pointer(x, y)
         backend['display'].sync()
-else:
-    pass # raise NotImplementedError()
+elif sys.platform() == 'darwin':
+    import Quartz
+    def get_backend():
+        return {}
+    def __move_to(backend, x, y):
+        move = Quartz.CGEventCreateMouseEvent(
+            None, Quartz.kCGEventMouseMoved, (x, y), 0)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, move)
 
 
 @requires_mss
