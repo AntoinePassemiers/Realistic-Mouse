@@ -12,7 +12,6 @@ except ImportError:
 import ctypes
 import platform
 import os
-import sys
 import json
 import zipfile
 
@@ -73,7 +72,7 @@ elif platform.system() == 'Linux':
         root = backend['screen'].root
         root.warp_pointer(x, y)
         backend['display'].sync()
-elif sys.platform() == 'darwin':
+else:
     import Quartz
     def get_backend():
         return {}
