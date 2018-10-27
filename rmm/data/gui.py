@@ -34,11 +34,11 @@ class GUI:
         self.height = self.master.winfo_screenheight() - 3
         self.master.geometry("{0}x{1}+0+0".format(self.width, self.height))
 
-        button_size = 2
+        self.button_size = 10
         self.button_blue = tk.Button(self.master, command=self.on_click_blue, bg='blue')
-        self.button_blue.config(height=button_size, width=button_size*2)
+        self.button_blue.config(height=self.button_size, width=self.button_size*2)
         self.button_red = tk.Button(self.master, command=self.on_click_red, bg='red')
-        self.button_red.config(height=button_size, width=button_size*2)
+        self.button_red.config(height=self.button_size, width=self.button_size*2)
 
         self.last_click = None
         self.click_time_diffs = []
@@ -72,10 +72,14 @@ class GUI:
     def place_buttons(self):
         self.button_red.place_forget()
         self.button_blue.place_forget()
+
+        self.button_size = int(np.random.randint(1, 25))
         x, y = self.random_coords()
+        self.button_blue.config(height=self.button_size, width=self.button_size*2)
         self.button_blue.place(x=x, y=y)
         self.src = (x, y)
         x, y = self.random_coords()
+        self.button_red.config(height=self.button_size, width=self.button_size*2)
         self.button_red.place(x=x, y=y)
         self.dest = (x, y)
         self.blue_pressed = self.red_pressed = False
@@ -83,6 +87,7 @@ class GUI:
     def on_click_blue(self):
         if self.red_pressed:
             self.movements[-1].stop_recording()
+            self.movements[-1].aod = self.button_size
             self.blue_pressed = True
             self.place_buttons()
     
@@ -101,6 +106,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     data = get_mv_data()
+    print(len(data[args.mode]))
 
     gui = GUI(args.action)
     data[args.mode] += [movement.__dict__() for movement in gui.movements]

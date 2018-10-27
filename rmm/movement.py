@@ -16,6 +16,7 @@ class MouseMovement:
         self.timestamps = list()
         self.last = None
         self.recording = False
+        self.aod = None
     
     @staticmethod
     def time_millis():
@@ -97,6 +98,7 @@ class MouseMovement:
     
     def __dict__(self):
         return {
+            'aod': self.aod,
             'screen_resolution': SCREEN_RESOLUTION,
             'coords': [[int(x), int(y)] for x, y in self.coords],
             'timestamps': [int(d) for d in list(np.asarray(self.timestamps) - self.timestamps[0])]}
@@ -107,4 +109,6 @@ class MouseMovement:
         screen_resolution = d['screen_resolution'] # TODO
         movement.coords = d['coords']
         movement.timestamps = d['timestamps']
+        if 'aod' in d.keys():
+            movement.aod = d['aod']
         return movement

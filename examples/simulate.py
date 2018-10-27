@@ -59,4 +59,4 @@ def simulate():
 
 
 if __name__ == '__main__':
-    test_circle()
+    simulate()
