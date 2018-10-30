@@ -20,7 +20,8 @@ class MouseMode:
 
 class RealisticMouse:
 
-    def __init__(self, mode=MouseMode.TRACKPAD, multi_monitor=False):
+    def __init__(self, n_closest_movements=10, mode=MouseMode.TRACKPAD, multi_monitor=False):
+        self.n_closest_movements = n_closest_movements
         self.backend = get_backend()
         movements = get_mv_data()
         self.multi_monitor = multi_monitor
@@ -59,7 +60,10 @@ class RealisticMouse:
         positions[:, 2:] -= transformation
         diff = np.sum(
             (positions - np.asarray([x0, y0, x1, y1])) ** 2, axis=1)
-        c = np.argmin(diff)
+        if self.n_closest_movements == 1:
+            c = np.argmin(diff)
+        else:
+            c = np.argsort(diff)[np.random.randint(1, self.n_closest_movements)]
         _x0, _y0, _x1, _y1 = positions[c]
         movement = self.movements[self.mode][c]
         movement = movement - transformation[c]
