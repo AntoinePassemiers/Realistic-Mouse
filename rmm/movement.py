@@ -2,6 +2,8 @@
 # movement.py
 # author: Antoine Passemiers
 
+from typing import Dict, Any
+
 from rmm.utils import *
 
 import numpy as np
@@ -12,14 +14,14 @@ import threading
 class MouseMovement:
 
     def __init__(self):
-        self.coords = list()
-        self.timestamps = list()
+        self.coords = []
+        self.timestamps = []
         self.last = None
         self.recording = False
         self.aod = None
     
     @staticmethod
-    def time_millis():
+    def time_millis() -> int:
         return int(round(time.time() * 1000.))
 
     def record_current_position(self):
@@ -41,26 +43,22 @@ class MouseMovement:
     def stop_recording(self):
         self.recording = False
     
-    def replay(self, backend, multi_monitor=False):
-        pauses = np.diff(self.timestamps)
-        x, y = self.coords[0]
+    def replay(self, backend, speed: float = 1., multi_monitor: bool = False):
+        pauses = np.insert(np.diff(self.timestamps), 0, 0, axis=0)
+        pauses = np.round(pauses / speed).astype(int)
         t1 = MouseMovement.time_millis()
-        move_mouse_to(backend, x, y, multi_monitor=multi_monitor)
-        for i in range(len(self.coords)-1):
+        for i in range(len(self.coords)):
             t2 = MouseMovement.time_millis()
             duration = pauses[i] - (t2 - t1)
-            # assert(duration >= 0)
             if duration > 0:
                 time.sleep(float(duration) / 1000.)
-            x, y = self.coords[i+1]
+            x, y = self.coords[i]
             t1 = MouseMovement.time_millis()
             move_mouse_to(backend, x, y, multi_monitor=multi_monitor)
     
     @staticmethod
-    def linear_tweening(backend, x1, y1, multi_monitor=False):
+    def linear_tweening(backend, x1: int, y1: int, t: float = 0.3, multi_monitor: bool = False):
         x0, y0 = get_mouse_position()
-        distance = np.sqrt((x1 - x0) ** 2. + (y1 - y0) ** 2.)
-        t = 0.3 # TODO
         dt = 0.01
         for ct in np.arange(0, t, dt):
             alpha = float(ct) / t
@@ -93,10 +91,10 @@ class MouseMovement:
         new_movement.coords = list(np.asarray(self.coords) - np.asarray([x, y]))
         return new_movement
     
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.coords)
     
-    def __dict__(self):
+    def __dict__(self) -> Dict[str, Any]:
         return {
             'aod': self.aod,
             'screen_resolution': SCREEN_RESOLUTION,
@@ -104,9 +102,9 @@ class MouseMovement:
             'timestamps': [int(d) for d in list(np.asarray(self.timestamps) - self.timestamps[0])]}
     
     @staticmethod
-    def from_dict(d):
+    def from_dict(d) -> 'MouseMovement':
         movement = MouseMovement()
-        screen_resolution = d['screen_resolution'] # TODO
+        screen_resolution = d['screen_resolution']  # TODO
         movement.coords = d['coords']
         movement.timestamps = d['timestamps']
         if 'aod' in d.keys():

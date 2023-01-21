@@ -3,8 +3,8 @@
 ## How to use it
 
 ```python
->>> from rmm.mouse import RealisticMouse, MouseMode
->>> mouse = RealisticMouse(mode=MouseMode.TRACKPAD)
+>>> from rmm.mouse import Mouse
+>>> mouse = Mouse(speed=1, mode=Mouse.Mode.TRACKPAD)
 >>> x, y = 824, 365 # Destination coordinates
 >>> mouse.move_to(x, y)
 >>> mouse.left_click()

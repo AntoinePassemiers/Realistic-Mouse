@@ -20,7 +20,7 @@ class Shape(metaclass=ABCMeta):
 
     def __isub__(self, point):
         dx, dy = point
-        coords = self.get_coords
+        coords = self.get_coords()
         new_coords = list()
         for x, y in coords:
             new_coords.append((x - dx, y - dy))
@@ -255,8 +255,7 @@ class Polygon(Shape):
 
     def __init__(self, polyline):
         self.triangles = self.ear_clipping(polyline)
-        self.weights = np.asarray([triangle.area() \
-            for triangle in self.triangles])
+        self.weights = np.asarray([triangle.area() for triangle in self.triangles])
         self.weights /= self.weights.sum()
     
     def ear_clipping(self, polyline):

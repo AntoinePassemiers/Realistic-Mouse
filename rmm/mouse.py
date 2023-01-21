@@ -2,26 +2,35 @@
 # mouse.py
 # author: Antoine Passemiers
 
+import copy
+import enum
+import random
+import time
+
+import numpy as np
+
 from rmm.distribution import Distribution
 from rmm.movement import MouseMovement
 from rmm.shape import Shape, Box, Point
 from rmm.utils import *
 
-import time
-import random
-import copy
-import numpy as np
 
+class Mouse:
 
-class MouseMode:
-    TRACKPAD = 'trackpad'
-    MOUSE = 'mouse'
+    class Mode(str, enum.Enum):
 
+        TRACKPAD = 'trackpad'
+        MOUSE = 'mouse'
 
-class RealisticMouse:
-
-    def __init__(self, n_closest_movements=10, mode=MouseMode.TRACKPAD, multi_monitor=False):
+    def __init__(
+            self,
+            n_closest_movements: int = 10,
+            speed: float = 1.,
+            mode: 'Mouse.Mode' = Mode.TRACKPAD,
+            multi_monitor: bool = False
+    ):
         self.n_closest_movements = n_closest_movements
+        self.speed: float = speed
         self.backend = get_backend()
         movements = get_mv_data()
         self.multi_monitor = multi_monitor
@@ -29,21 +38,21 @@ class RealisticMouse:
             self.monitor_coords = get_monitor_coords()
         else:
             self.monitor_coords = None
-        self.mode = mode
-        for mode in [MouseMode.TRACKPAD, MouseMode.MOUSE]:
+        self.mode: Mouse.Mode = mode
+        for mode in [Mouse.Mode.TRACKPAD, Mouse.Mode.MOUSE]:
             for i in range(len(movements[mode])):
                 movements[mode][i] = MouseMovement.from_dict(movements[mode][i])
         self.movements = movements
         self.src = {
-            MouseMode.TRACKPAD: np.asarray(
-                [m.coords[0] for m in self.movements[MouseMode.TRACKPAD]]),
-            MouseMode.MOUSE: np.asarray(
-                [m.coords[0] for m in self.movements[MouseMode.MOUSE]])}
+            Mouse.Mode.TRACKPAD: np.asarray(
+                [m.coords[0] for m in self.movements[Mouse.Mode.TRACKPAD]]),
+            Mouse.Mode.MOUSE: np.asarray(
+                [m.coords[0] for m in self.movements[Mouse.Mode.MOUSE]])}
         self.dest = {
-            MouseMode.TRACKPAD: np.asarray(
-                [m.coords[-1] for m in self.movements[MouseMode.TRACKPAD]]),
-            MouseMode.MOUSE: np.asarray(
-                [m.coords[-1] for m in self.movements[MouseMode.MOUSE]])}
+            Mouse.Mode.TRACKPAD: np.asarray(
+                [m.coords[-1] for m in self.movements[Mouse.Mode.TRACKPAD]]),
+            Mouse.Mode.MOUSE: np.asarray(
+                [m.coords[-1] for m in self.movements[Mouse.Mode.MOUSE]])}
 
         if len(self.src[self.mode]) == 0:
             raise NoDataFoundException(
@@ -52,7 +61,7 @@ class RealisticMouse:
         pdf = np.load(CLICK_FILE_PATH)
         self.click_distribution = Distribution(pdf)
     
-    def __closest(self, x0, y0, x1, y1):
+    def __closest(self, x0: int, y0: int, x1: int, y1: int) -> Tuple[int, int, int, int, MouseMovement]:
         positions = np.concatenate(
             [self.src[self.mode], self.dest[self.mode]], axis=1)
         transformation = positions[:, :2] - np.asarray([x0, y0])
@@ -72,7 +81,7 @@ class RealisticMouse:
     def get_position(self):
         return get_mouse_position()
     
-    def convert_to_area(self, *args, monitor=0):
+    def convert_to_area(self, *args, monitor: int = 0):
         if len(args) == 1 and isinstance(args[0], Shape):
             area = copy.deepcopy(args[0])
         elif len(args) == 4:
@@ -85,7 +94,7 @@ class RealisticMouse:
             area += (dx, dy)
         return area
 
-    def move_to(self, *args, monitor=0, n_moves=2, full=False):
+    def move_to(self, *args, monitor: int = 0, n_moves: int = 2, full: bool = False):
         area = self.convert_to_area(*args, monitor=monitor)
         xf, yf = area.sample()
         x0, y0 = self.get_position()
@@ -97,7 +106,7 @@ class RealisticMouse:
                 moves.append(movement)
             _x2, _y2 = _x1, _y1
             for movement in moves:
-                movement.replay(self.backend, multi_monitor=self.multi_monitor)
+                movement.replay(self.backend, speed=self.speed, multi_monitor=self.multi_monitor)
             if not isinstance(area, Point):
                 if not area.contains(_x1, _y1):
                     MouseMovement.linear_tweening(
@@ -110,7 +119,7 @@ class RealisticMouse:
                 MouseMovement.linear_tweening(
                     self.backend, xf, yf, multi_monitor=self.multi_monitor)
     
-    def move_away_from(self, x0, y0, x1, y1):
+    def move_away_from(self, x0: int, y0: int, x1: int, y1: int):
         # TODO: use convert_to_area
         x, y = random.choice([(x0, y0), (x0, y1), (x1, y0), (x1, y1)])
         for i in range(5):
@@ -129,7 +138,7 @@ class RealisticMouse:
             time.sleep(0.05)
         self.left_click(*args, **kwargs)
 
-    def left_click(self, n_clicks=1):
+    def left_click(self, n_clicks: int = 1):
         for i in range(n_clicks):
             dt = self.click_distribution.sample() / 1000.0
             time.sleep(dt)
@@ -139,14 +148,14 @@ class RealisticMouse:
             #mouse_down(button='left')
         # TODO: random move
     
-    def right_click(self, n_clicks=1):
+    def right_click(self, n_clicks: int = 1):
         for i in range(n_clicks):
             dt = self.click_distribution.sample() / 1000.0
             time.sleep(dt)
             mouse_right_click()
         # TODO: random move
     
-    def wait(self, n_seconds, p=0.5):
+    def wait(self, n_seconds: float, p: float = 0.5):
         if random.random() < p:
             time.sleep(n_seconds)
         else:

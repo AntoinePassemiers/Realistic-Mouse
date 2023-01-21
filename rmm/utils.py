@@ -2,6 +2,8 @@
 # utils.py
 # author: Antoine Passemiers
 
+from typing import Tuple, Callable
+
 import pyautogui
 try:
     from mss import mss
@@ -22,19 +24,21 @@ MV_FILE_PATH = os.path.join(DATA_PATH, 'movements.zip')
 SPECIAL_FILE_PATH = os.path.join(DATA_PATH, 'special.zip')
 CLICK_FILE_PATH = os.path.join(DATA_PATH, 'click_diffs.npy')
 
-pyautogui.FAILSAFE = False # TODO
+pyautogui.FAILSAFE = False  # TODO
 SCREEN_RESOLUTION = tuple(pyautogui.size())
 
 
-def get_screen_size():
-    return tuple(pyautogui.size())
+def get_screen_size() -> Tuple[int, int]:
+     dimensions = pyautogui.size()
+     return int(dimensions.height), int(dimensions.width)
 
 
-def get_mouse_position():
-    return pyautogui.position()
+def get_mouse_position() -> Tuple[int, int]:
+    x, y = pyautogui.position()
+    return int(x), int(y)
 
 
-def remove_screen_overflow(x, y):
+def remove_screen_overflow(x: int, y: int) -> Tuple[int, int]:
     if x < 0:
         x = 0
     elif x >= SCREEN_RESOLUTION[0]:
@@ -46,7 +50,7 @@ def remove_screen_overflow(x, y):
     return x, y
 
 
-def requires_mss(func):
+def requires_mss(func: Callable):
     def new_func(*args, **kwargs):
         if MSS_AVAILABLE:
             return func(*args, **kwargs)
@@ -83,7 +87,7 @@ else:
 
 
 @requires_mss
-def get_monitor_coords():
+def get_monitor_coords() -> Tuple[int, int]:
     with mss() as sct:
         coords = sct.monitors
     return coords

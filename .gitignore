@@ -2,6 +2,7 @@
 *.un~
 *.py~
 
+.idea/
 rmm.egg-info/
 build/
 dist/
